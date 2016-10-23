@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.DriverManager;
@@ -19,8 +20,15 @@ public class MySQLDAO implements DAO {
 	
 	private static MySQLDAO singleton;
 	private Connection connection;
-	
+	/*
+	  Вопрос
+	  Может, стоит сразу делать поля типа PreparedStatement?
+	 */
 	private final String findByIdQuery = "SELECT * FROM "+TABLE_NAME+" WHERE bookId = ?";
+	private final String findHundredRecordsQuery = "SELECT * FROM "+TABLE_NAME+" LIMIT 100";
+	private final String insertRecordQuery = "INSERT INTO "+TABLE_NAME+"(`bookTitle`, `bookAuthor`, `obtainDate`, `returnDate`) VALUES (?, ?, ?, ?)";
+	private final String updateRecordQuery = "UPDATE "+TABLE_NAME+" SET bookTitle = ?, bookAuthor = ?, obtainDate = ?, returnDate = ? WHERE bookId = ?";
+	private final String deleteRecordQuery = "DELETE FROM "+TABLE_NAME+" WHERE bookId = ?";
 	
 	public static MySQLDAO getInstance() throws SQLException, ClassNotFoundException{
 		if(singleton != null) {
@@ -56,8 +64,7 @@ public class MySQLDAO implements DAO {
 			statement.setInt(1, bookId);
 			ResultSet resultSet = statement.executeQuery();			
 			boolean isFound = resultSet.next();
-			if (isFound) {
-				
+			if (isFound) {				
 				result.put("bookId", String.valueOf(bookId));
 				result.put("bookTitle", resultSet.getString("bookTitle"));
 				result.put("bookAuthor", resultSet.getString("bookAuthor"));
@@ -70,27 +77,91 @@ public class MySQLDAO implements DAO {
 			// TODO: logging
 			throw cause;
 		}		
+		
 		return result;
 	}
 
 	public ArrayList<HashMap<String, String>> getAllRecords() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<HashMap<String, String>> result = new ArrayList<>();
+		try (Statement statement = connection.createStatement()) {
+			ResultSet resultSet = statement.executeQuery(findHundredRecordsQuery);
+			while(resultSet.next()) {
+				HashMap<String, String> tmp = new HashMap<>();
+				tmp.put("bookId", String.valueOf(resultSet.getInt("bookId")));
+				tmp.put("bookTitle", resultSet.getString("bookTitle"));
+				tmp.put("bookAuthor", resultSet.getString("bookAuthor"));
+				tmp.put("obtainDate", resultSet.getString("obtainDate"));
+				tmp.put("returnDate", resultSet.getString("returnDate"));
+				
+				result.add(tmp);
+			}
+		} catch(SQLException cause) {
+			// TODO: logging
+			throw cause;
+		}
+		return result;
 	}
 
-	public void addRecord(HashMap<String, String> record) throws SQLException {
-		// TODO Auto-generated method stub
-
+	public int addRecord(HashMap<String, String> record) throws SQLException {
+		int newRecordId = -1;
+		
+		try (PreparedStatement statement = connection.prepareStatement(insertRecordQuery, Statement.RETURN_GENERATED_KEYS)) {
+			statement.setString(1, record.get("bookTitle"));
+			statement.setString(2, record.get("bookAuthor"));
+			statement.setString(3, record.get("obtainDate"));
+			statement.setString(4, record.get("returnDate"));
+			
+			if (statement.executeUpdate() == 0) {
+				// TODO: logging
+				throw new SQLException("Fault during adding new element.");
+			} else {
+				ResultSet generatedKeys = statement.getGeneratedKeys();
+				if (generatedKeys.next()) {
+					newRecordId = generatedKeys.getInt(1);
+				} else {
+					// TODO: logging
+					throw new SQLException("Fault during adding new element. New book id has not been initialized.");
+				}
+			}
+		} catch(SQLException cause) {
+			// TODO: logging
+			throw cause;
+		}
+		return newRecordId;
 	}
 
 	public void updateRecord(HashMap<String, String> record) throws SQLException {
-		// TODO Auto-generated method stub
-
+		try (PreparedStatement statement= connection.prepareStatement(updateRecordQuery)) {
+			statement.setString(1, record.get("bookTitle"));
+			statement.setString(2, record.get("bookAuthor"));
+			statement.setString(3, record.get("obtainDate"));
+			statement.setString(4, record.get("returnDate"));
+			statement.setInt(5, Integer.parseInt(record.get("bookId")));
+			
+			System.out.println(Integer.parseInt(record.get("bookId")));
+			
+			if (statement.executeUpdate() == 0) {
+				// TODO: logging
+				throw new SQLException("Fault during updating element");
+			}
+		} catch(SQLException cause) {
+			// TODO: logging
+			throw cause;
+		}
 	}
 
-	public void deleteRecordById(int id) throws SQLException {
-		// TODO Auto-generated method stub
-
+	public void deleteRecordById(int bookId) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(deleteRecordQuery)) {
+			statement.setInt(1, bookId);
+			
+			if (statement.executeUpdate() == 0 ) {
+				// TODO: logging
+				throw new SQLException("Fault during deleting element.");
+			}
+		} catch(SQLException cause) {
+			// TODO: logging
+			throw cause;
+		}
 	}
 
 }

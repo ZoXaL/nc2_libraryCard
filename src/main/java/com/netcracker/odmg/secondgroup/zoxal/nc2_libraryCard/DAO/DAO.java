@@ -8,7 +8,7 @@ public interface DAO {
 	HashMap<String, String> getRecordById(int id) throws SQLException;
 	ArrayList<HashMap<String, String>> getAllRecords() throws SQLException;
 	
-	void addRecord(HashMap<String, String> record) throws SQLException;
+	int addRecord(HashMap<String, String> record) throws SQLException;
 	void updateRecord(HashMap<String, String> record) throws SQLException;
 	void deleteRecordById(int id) throws SQLException;
 }
