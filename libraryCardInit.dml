@@ -1,0 +1,6 @@
+use nc2_libraryCard;
+insert into libraryCard (`bookTitle`,`bookAuthor`,`obtainDate`,`returnDate`) values 
+	('Thinking in Java', 'Bruce Eckel', '2016-09-16', '2016-11-16'),
+	('Mastring Regular Expressions', 'Jeffrey Friedl', '2016-10-02', '2017-01-02')
+
+	
