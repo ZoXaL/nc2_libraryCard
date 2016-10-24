@@ -164,4 +164,13 @@ public class MySQLDAO implements DAO {
 		}
 	}
 
+	public void destroy() throws SQLException{
+		if (connection == null) return;
+		try {
+			connection.close();
+		} catch(SQLException cause) {
+			throw new SQLException("Faut during closing connection", cause);
+		}
+	}
+
 }

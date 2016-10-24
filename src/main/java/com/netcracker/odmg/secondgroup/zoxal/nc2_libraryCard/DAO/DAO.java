@@ -7,10 +7,12 @@ import java.util.ArrayList;
 import java.sql.SQLException;
 
 public interface DAO {	
-	Record getRecordById(int id) throws SQLException;
-	ArrayList<Record> getAllRecords() throws SQLException;
+	//Не уверен насчёт типа исключений
+	Record getRecordById(int id) throws Exception;
+	ArrayList<Record> getAllRecords() throws Exception;
 	
-	int addRecord(Record record) throws SQLException;
-	void updateRecord(Record record) throws SQLException;
-	void deleteRecordById(int id) throws SQLException;
+	int addRecord(Record record) throws Exception;
+	void updateRecord(Record record) throws Exception;
+	void deleteRecordById(int id) throws Exception;
+	void destroy() throws Exception;
 }
