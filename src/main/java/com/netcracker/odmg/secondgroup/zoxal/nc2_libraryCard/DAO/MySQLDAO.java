@@ -1,5 +1,7 @@
 package com.netcracker.odmg.secondgroup.zoxal.nc2_libraryCard.DAO;
 
+import com.netcracker.odmg.secondgroup.zoxal.nc2_libraryCard.model.Record;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -57,19 +59,19 @@ public class MySQLDAO implements DAO {
 		}	
 	}
 
-	public HashMap<String, String> getRecordById(int bookId) throws SQLException {
-		HashMap<String, String> result = new HashMap<>();
+	public Record getRecordById(int bookId) throws SQLException {
+		Record result = new Record();
 		
 		try (PreparedStatement statement = connection.prepareStatement(findByIdQuery)) {
 			statement.setInt(1, bookId);
 			ResultSet resultSet = statement.executeQuery();			
 			boolean isFound = resultSet.next();
 			if (isFound) {				
-				result.put("bookId", String.valueOf(bookId));
-				result.put("bookTitle", resultSet.getString("bookTitle"));
-				result.put("bookAuthor", resultSet.getString("bookAuthor"));
-				result.put("obtainDate", resultSet.getString("obtainDate"));
-				result.put("returnDate", resultSet.getString("returnDate"));
+				result.setId(resultSet.getInt("bookId"));
+				result.setTitle(resultSet.getString("bookTitle"));
+				result.setAuthor(resultSet.getString("bookAuthor"));
+				result.setObtainDate(resultSet.getString("obtainDate"));
+				result.setReturnDate(resultSet.getString("returnDate"));
 			} else {
 				throw new SQLException("There is no record with id = "+bookId);
 			}			
@@ -81,17 +83,17 @@ public class MySQLDAO implements DAO {
 		return result;
 	}
 
-	public ArrayList<HashMap<String, String>> getAllRecords() throws SQLException {
-		ArrayList<HashMap<String, String>> result = new ArrayList<>();
+	public ArrayList<Record> getAllRecords() throws SQLException {
+		ArrayList<Record> result = new ArrayList<>();
 		try (Statement statement = connection.createStatement()) {
 			ResultSet resultSet = statement.executeQuery(findHundredRecordsQuery);
 			while(resultSet.next()) {
-				HashMap<String, String> tmp = new HashMap<>();
-				tmp.put("bookId", String.valueOf(resultSet.getInt("bookId")));
-				tmp.put("bookTitle", resultSet.getString("bookTitle"));
-				tmp.put("bookAuthor", resultSet.getString("bookAuthor"));
-				tmp.put("obtainDate", resultSet.getString("obtainDate"));
-				tmp.put("returnDate", resultSet.getString("returnDate"));
+				Record tmp = new Record();
+				tmp.setId(resultSet.getInt("bookId"));
+				tmp.setTitle(resultSet.getString("bookTitle"));
+				tmp.setAuthor(resultSet.getString("bookAuthor"));
+				tmp.setObtainDate(resultSet.getString("obtainDate"));
+				tmp.setReturnDate(resultSet.getString("returnDate"));
 				
 				result.add(tmp);
 			}
@@ -102,14 +104,14 @@ public class MySQLDAO implements DAO {
 		return result;
 	}
 
-	public int addRecord(HashMap<String, String> record) throws SQLException {
+	public int addRecord(Record record) throws SQLException {
 		int newRecordId = -1;
 		
 		try (PreparedStatement statement = connection.prepareStatement(insertRecordQuery, Statement.RETURN_GENERATED_KEYS)) {
-			statement.setString(1, record.get("bookTitle"));
-			statement.setString(2, record.get("bookAuthor"));
-			statement.setString(3, record.get("obtainDate"));
-			statement.setString(4, record.get("returnDate"));
+			statement.setString(1, record.getTitle());
+			statement.setString(2, record.getAuthor());
+			statement.setString(3, record.getObtainDate());
+			statement.setString(4, record.getReturnDate());
 			
 			if (statement.executeUpdate() == 0) {
 				// TODO: logging
@@ -130,15 +132,13 @@ public class MySQLDAO implements DAO {
 		return newRecordId;
 	}
 
-	public void updateRecord(HashMap<String, String> record) throws SQLException {
+	public void updateRecord(Record record) throws SQLException {
 		try (PreparedStatement statement= connection.prepareStatement(updateRecordQuery)) {
-			statement.setString(1, record.get("bookTitle"));
-			statement.setString(2, record.get("bookAuthor"));
-			statement.setString(3, record.get("obtainDate"));
-			statement.setString(4, record.get("returnDate"));
-			statement.setInt(5, Integer.parseInt(record.get("bookId")));
-			
-			System.out.println(Integer.parseInt(record.get("bookId")));
+			statement.setString(1, record.getTitle());
+			statement.setString(2, record.getAuthor());
+			statement.setString(3, record.getObtainDate());
+			statement.setString(4, record.getReturnDate());
+			statement.setInt(5, record.getId());
 			
 			if (statement.executeUpdate() == 0) {
 				// TODO: logging

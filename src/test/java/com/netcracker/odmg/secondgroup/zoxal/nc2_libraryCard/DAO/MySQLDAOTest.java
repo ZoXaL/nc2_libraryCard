@@ -1,5 +1,7 @@
 package com.netcracker.odmg.secondgroup.zoxal.nc2_libraryCard.DAO;
 
+import com.netcracker.odmg.secondgroup.zoxal.nc2_libraryCard.model.Record;
+
 import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
 import org.junit.Test;
@@ -22,8 +24,8 @@ public class MySQLDAOTest {
 	 */
 	private static DAO dao;
 	
-	private static HashMap<String, String> oneRecord;
-	private static HashMap<String, String> changedRecord;
+	private static Record oneRecord;
+	private static Record changedRecord;
 	private static int changedRecordId;
 	
 	@BeforeClass
@@ -31,17 +33,17 @@ public class MySQLDAOTest {
 		dao = MySQLDAO.getInstance();
 		
 		
-		oneRecord = new HashMap<>();
-		oneRecord.put("bookTitle", "TestTitle");
-		oneRecord.put("bookAuthor", "Jedi of JUnit");
-		oneRecord.put("obtainDate", "1997-10-29");
-		oneRecord.put("returnDate", "2100-01-01");
+		oneRecord = new Record();
+		oneRecord.setTitle("TestTitle");
+		oneRecord.setAuthor("Jedi of JUnit");
+		oneRecord.setObtainDate("1997-10-29");
+		oneRecord.setReturnDate("2100-01-01");
 		
-		changedRecord = new HashMap<>();
-		changedRecord.put("bookTitle", "changedTestTitle");
-		changedRecord.put("bookAuthor", "Jedi of Changes");
-		changedRecord.put("obtainDate", "2000-01-01");
-		changedRecord.put("returnDate", "2100-01-01");
+		changedRecord = new Record();
+		changedRecord.setTitle("changedTestTitle");
+		changedRecord.setAuthor("Jedi of Changes");
+		changedRecord.setObtainDate("2000-01-01");
+		changedRecord.setReturnDate("2100-01-01");
 	}
 	
 	@Parameters
@@ -65,11 +67,11 @@ public class MySQLDAOTest {
 	@Parameters(method = "recordsExample")
 	public void getRecordByIdTest(int bookId, String bookTitle, String bookAuthor,
 									String obtainDate, String returnDate) throws SQLException {
-		HashMap<String, String> result = dao.getRecordById(bookId);
-		assertEquals(result.get("bookTitle"), bookTitle);
-		assertEquals(result.get("bookAuthor"), bookAuthor);
-		assertEquals(result.get("obtainDate"), obtainDate);
-		assertEquals(result.get("returnDate"), returnDate);
+		Record result = dao.getRecordById(bookId);
+		assertEquals(result.getTitle(), bookTitle);
+		assertEquals(result.getAuthor(), bookAuthor);
+		assertEquals(result.getObtainDate(), obtainDate);
+		assertEquals(result.getReturnDate(), returnDate);
 	}
 	
 	
@@ -77,14 +79,14 @@ public class MySQLDAOTest {
 	@Parameters(method = "recordsExample")
 	public void getAllRecordsTest(int bookId, String bookTitle, String bookAuthor,
 			String obtainDate, String returnDate) throws SQLException {
-		ArrayList<HashMap<String, String>> result = dao.getAllRecords();
-		HashMap<String, String> testMap = new HashMap<String,String>();
-		testMap.put("bookId", String.valueOf(bookId));
-		testMap.put("bookTitle", bookTitle);
-		testMap.put("bookAuthor", bookAuthor);
-		testMap.put("obtainDate", obtainDate);
-		testMap.put("returnDate", returnDate);
-		assertTrue(result.contains(testMap));
+		ArrayList<Record> result = dao.getAllRecords();
+		Record testRecord = new Record();
+		testRecord.setId(bookId);
+		testRecord.setTitle(bookTitle);
+		testRecord.setAuthor(bookAuthor);
+		testRecord.setObtainDate(obtainDate);
+		testRecord.setReturnDate(returnDate);
+		assertTrue(result.contains(testRecord));
 	}
 	
 	// Здесь совсем плохо, но ничего другого я не придумал, подскажите, как лучше.
@@ -94,7 +96,7 @@ public class MySQLDAOTest {
 	public void addUpdateDeleteRecordTest() throws SQLException {
 		// FIXME: separate tests
 		changedRecordId = dao.addRecord(oneRecord);
-		changedRecord.put("bookId", String.valueOf(changedRecordId));
+		changedRecord.setId(changedRecordId);
 		dao.updateRecord(changedRecord);
 		dao.deleteRecordById(changedRecordId);		
 	}
