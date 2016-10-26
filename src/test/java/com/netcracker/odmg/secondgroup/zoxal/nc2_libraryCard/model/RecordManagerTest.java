@@ -73,6 +73,17 @@ public class RecordManagerTest {
 		assertEquals(result.getObtainDate(), obtainDate);
 		assertEquals(result.getReturnDate(), returnDate);
 	}
+
+	@Test
+	@Parameters(method = "recordsExample")
+	public void getRecordByTitleTest(int bookId, String bookTitle, String bookAuthor,
+									String obtainDate, String returnDate) throws Exception {
+		Record result = recordManager.getRecordByTitle(bookTitle);
+		assertEquals(result.getTitle(), bookTitle);
+		assertEquals(result.getAuthor(), bookAuthor);
+		assertEquals(result.getObtainDate(), obtainDate);
+		assertEquals(result.getReturnDate(), returnDate);
+	}
 	
 	
 	@Test
@@ -93,12 +104,19 @@ public class RecordManagerTest {
 	// Основная проблема (кроме нарушения главной идии юнит-тестирования) — при
 	// ошибке удаления/обновления тестовая запись остаётся в базе.
 	@Test
-	public void addUpdateDeleteRecordTest() throws Exception {
+	public void addUpdateDeleteByIdRecordTest() throws Exception {
 		// FIXME: separate tests
 		changedRecordId = recordManager.addRecord(oneRecord);
 		changedRecord.setId(changedRecordId);
-		recordManager.updateRecord(changedRecord);
+		recordManager.updateRecordById(changedRecord);
 		recordManager.deleteRecordById(changedRecordId);		
+	}
+	@Test
+	public void addUpdateDeleteByTitleRecordTest() throws Exception {
+		// FIXME: separate tests
+		recordManager.addRecord(oneRecord);
+		recordManager.updateRecordByTitle(changedRecord, oneRecord.getTitle());
+		recordManager.deleteRecordByTitle(changedRecord.getTitle());		
 	}
 
 }

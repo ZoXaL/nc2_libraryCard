@@ -27,16 +27,22 @@ public class MySQLDAO implements DAO {
 	  Может, стоит сразу делать поля типа PreparedStatement?
 	 */
 	private final String findByIdQuery = "SELECT * FROM "+TABLE_NAME+" WHERE bookId = ?";
+	private final String findByTitleQuery = "SELECT * FROM "+TABLE_NAME+" WHERE bookTitle = ?";
 	private final String findHundredRecordsQuery = "SELECT * FROM "+TABLE_NAME+" LIMIT 100";
+	
 	private final String insertRecordQuery = "INSERT INTO "+TABLE_NAME+"(`bookTitle`, `bookAuthor`, `obtainDate`, `returnDate`) VALUES (?, ?, ?, ?)";
-	private final String updateRecordQuery = "UPDATE "+TABLE_NAME+" SET bookTitle = ?, bookAuthor = ?, obtainDate = ?, returnDate = ? WHERE bookId = ?";
-	private final String deleteRecordQuery = "DELETE FROM "+TABLE_NAME+" WHERE bookId = ?";
+	
+	private final String updateRecordByIdQuery = "UPDATE "+TABLE_NAME+" SET bookTitle = ?, bookAuthor = ?, obtainDate = ?, returnDate = ? WHERE bookId = ?";
+	private final String updateRecordByTitleQuery = "UPDATE "+TABLE_NAME+" SET bookTitle = ?, bookAuthor = ?, obtainDate = ?, returnDate = ? WHERE bookTitle = ?";
+	
+	private final String deleteRecordByIdQuery = "DELETE FROM "+TABLE_NAME+" WHERE bookId = ?";
+	private final String deleteRecordByTitleQuery = "DELETE FROM "+TABLE_NAME+" WHERE bookTitle = ?";
 	
 	public static MySQLDAO getInstance() throws SQLException, ClassNotFoundException{
-		if(singleton != null) {
-			return singleton;
+		if(singleton == null) {
+			singleton = new MySQLDAO();
 		}
-		return new MySQLDAO();
+		return singleton;
 	}
 	
 	private MySQLDAO() throws SQLException, ClassNotFoundException{
@@ -74,6 +80,30 @@ public class MySQLDAO implements DAO {
 				result.setReturnDate(resultSet.getString("returnDate"));
 			} else {
 				throw new SQLException("There is no record with id = "+bookId);
+			}			
+		}catch (SQLException cause) {
+			// TODO: logging
+			throw cause;
+		}		
+		
+		return result;
+	}
+
+	public Record getRecordByTitle(String bookTitle) throws SQLException {
+		Record result = new Record();
+		
+		try (PreparedStatement statement = connection.prepareStatement(findByTitleQuery)) {
+			statement.setString(1, bookTitle);
+			ResultSet resultSet = statement.executeQuery();			
+			boolean isFound = resultSet.next();
+			if (isFound) {				
+				result.setId(resultSet.getInt("bookId"));
+				result.setTitle(resultSet.getString("bookTitle"));
+				result.setAuthor(resultSet.getString("bookAuthor"));
+				result.setObtainDate(resultSet.getString("obtainDate"));
+				result.setReturnDate(resultSet.getString("returnDate"));
+			} else {
+				throw new SQLException("There is no record with title = "+bookTitle);
 			}			
 		}catch (SQLException cause) {
 			// TODO: logging
@@ -132,8 +162,8 @@ public class MySQLDAO implements DAO {
 		return newRecordId;
 	}
 
-	public void updateRecord(Record record) throws SQLException {
-		try (PreparedStatement statement= connection.prepareStatement(updateRecordQuery)) {
+	public void updateRecordById(Record record) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(updateRecordByIdQuery)) {
 			statement.setString(1, record.getTitle());
 			statement.setString(2, record.getAuthor());
 			statement.setString(3, record.getObtainDate());
@@ -150,9 +180,42 @@ public class MySQLDAO implements DAO {
 		}
 	}
 
+	public void updateRecordByTitle(Record record, String previousTitle) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(updateRecordByTitleQuery)) {
+			statement.setString(1, record.getTitle());
+			statement.setString(2, record.getAuthor());
+			statement.setString(3, record.getObtainDate());
+			statement.setString(4, record.getReturnDate());
+			statement.setString(5, previousTitle);			
+			
+			if (statement.executeUpdate() == 0) {
+				// TODO: logging
+				throw new SQLException("Fault during updating element");
+			}
+		} catch(SQLException cause) {
+			// TODO: logging
+			throw cause;
+		}
+	}
+
+
 	public void deleteRecordById(int bookId) throws SQLException {
-		try (PreparedStatement statement = connection.prepareStatement(deleteRecordQuery)) {
+		try (PreparedStatement statement = connection.prepareStatement(deleteRecordByIdQuery)) {
 			statement.setInt(1, bookId);
+			
+			if (statement.executeUpdate() == 0 ) {
+				// TODO: logging
+				throw new SQLException("Fault during deleting element.");
+			}
+		} catch(SQLException cause) {
+			// TODO: logging
+			throw cause;
+		}
+	}
+
+	public void deleteRecordByTitle(String bookTitle) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(deleteRecordByTitleQuery)) {
+			statement.setString(1, bookTitle);
 			
 			if (statement.executeUpdate() == 0 ) {
 				// TODO: logging
@@ -172,5 +235,16 @@ public class MySQLDAO implements DAO {
 			throw new SQLException("Faut during closing connection", cause);
 		}
 	}
-
+	public boolean isDestroyed() {
+		if(connection == null) {
+			return true;
+		}
+		try {
+			return connection.isClosed();
+		} catch (SQLException e) {
+			//TODO: logging
+			return true;
+		}
+		
+	}
 }

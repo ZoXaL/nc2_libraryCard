@@ -12,25 +12,42 @@ public class RecordManager {
 		this.dao = dao;
 	}
 
-	Record getRecordById(int id) throws Exception {
+	public Record getRecordById(int id) throws Exception {
 		// TODO: trace log
 		return dao.getRecordById(id);
 	}
-	ArrayList<Record> getAllRecords() throws Exception {
+	public Record getRecordByTitle(String bookTitle) throws Exception {
+		// TODO: trace log
+		return dao.getRecordByTitle(bookTitle);
+	}
+	public ArrayList<Record> getAllRecords() throws Exception {
 		// TODO: trace log
 		return dao.getAllRecords();
-	}
-	
-	int addRecord(Record record) throws Exception {
+	}	
+	public int addRecord(Record record) throws Exception {
 		// TODO: trace log
 		return dao.addRecord(record);
 	}
-	void updateRecord(Record record) throws Exception {
+	public void updateRecordById(Record record) throws Exception {
 		// TODO: trace log
-		dao.updateRecord(record);
+		dao.updateRecordById(record);
 	}
-	void deleteRecordById(int id) throws Exception {
+	public void updateRecordByTitle(Record record, String title) throws Exception {
+		// TODO: trace log
+		dao.updateRecordByTitle(record, title);
+	}
+	public void deleteRecordById(int id) throws Exception {
 		// TODO: trace log
 		dao.deleteRecordById(id);
+	}
+	public void deleteRecordByTitle(String title) throws Exception {
+		// TODO: trace log
+		dao.deleteRecordByTitle(title);
+	}
+
+	public void destroyDAO() throws Exception{
+		if(!dao.isDestroyed()) {
+			dao.destroy();
+		}
 	}
 }
