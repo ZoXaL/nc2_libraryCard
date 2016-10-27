@@ -6,8 +6,9 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.sql.SQLException;
 
+
 public interface DAO {	
-	//Не уверен насчёт типа исключений
+	//Не уверен насчёт типа исключений, но для общего интерфеса едва ли их можно конкретизировать
 	Record getRecordById(int id) throws Exception;
 	Record getRecordByTitle(String title) throws Exception;
 	ArrayList<Record> getAllRecords() throws Exception;

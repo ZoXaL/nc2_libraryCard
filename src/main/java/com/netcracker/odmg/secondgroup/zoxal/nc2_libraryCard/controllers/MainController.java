@@ -21,7 +21,7 @@ public class MainController extends HttpServlet {
 
 	public MainController() {
 		try {
-			recordManager= new RecordManager(MySQLDAO.getInstance());
+			recordManager= new RecordManager(new MySQLDAO());
 		} catch(SQLException | ClassNotFoundException e) {
 			//TODO:logging
 		}
@@ -31,7 +31,7 @@ public class MainController extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 		if(recordManager == null) {
 			//TODO:logging
-			showErrorPage(req, res);
+			showErrorPage(req, res, "recordManager is null");
 		}
 
 		
@@ -41,7 +41,7 @@ public class MainController extends HttpServlet {
 			req.setAttribute("records", recordsArray);
 		} catch(Exception e) {
 			//TODO: logging
-			showErrorPage(req, res);
+			showErrorPage(req, res, e.getMessage());
 		}
 
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/jsp/main.jsp");
@@ -52,7 +52,8 @@ public class MainController extends HttpServlet {
 		this.doGet(req, res);
 	}
 
-	private void showErrorPage(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+	private void showErrorPage(HttpServletRequest req, HttpServletResponse res, String message) throws ServletException, IOException {
+		req.setAttribute("errorMessage", message);
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/jsp/errorPage.jsp");
 		dispatcher.forward(req, res);
 	}

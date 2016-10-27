@@ -3,15 +3,15 @@ package com.netcracker.odmg.secondgroup.zoxal.nc2_libraryCard.controllers;
 import com.netcracker.odmg.secondgroup.zoxal.nc2_libraryCard.DAO.*;
 import com.netcracker.odmg.secondgroup.zoxal.nc2_libraryCard.model.*;
 
-import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.ServletException;
-
 import javax.servlet.RequestDispatcher;
 
 import java.sql.SQLException;
+import java.io.IOException;
+
 
 public class AddController extends HttpServlet {
 
@@ -19,7 +19,7 @@ public class AddController extends HttpServlet {
 
 	public AddController() {
 		try {
-			recordManager= new RecordManager(MySQLDAO.getInstance());
+			recordManager= new RecordManager(new MySQLDAO());
 		} catch(SQLException | ClassNotFoundException e) {
 			//TODO:logging
 		}
@@ -27,18 +27,16 @@ public class AddController extends HttpServlet {
 	}
 
 	public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-		req.setAttribute("tableHeader", "Add new record");
-		req.setAttribute("formAction", req.getContextPath() + "/app/add");
+		req.setAttribute("panelHeader", "Add new record");
 
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/jsp/add-edit.jsp");
 		dispatcher.forward(req, res);
-
 	}
 
 	public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 		if(recordManager == null) {
 			//TODO:logging
-			showErrorPage(req, res);
+			showErrorPage(req, res, "recordManager is null");
 		}
 
 		try {
@@ -50,13 +48,14 @@ public class AddController extends HttpServlet {
 			recordManager.addRecord(newRecord);
 		} catch(Exception e) {
 			// TODO: logging
-			showErrorPage(req, res);
+			showErrorPage(req, res, e.getMessage());
 		}
 
 		res.sendRedirect(req.getContextPath() + "/app");
 	}
 
-	private void showErrorPage(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+	private void showErrorPage(HttpServletRequest req, HttpServletResponse res, String message) throws ServletException, IOException {
+		req.setAttribute("errorMessage", message);
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/jsp/errorPage.jsp");
 		dispatcher.forward(req, res);
 	}

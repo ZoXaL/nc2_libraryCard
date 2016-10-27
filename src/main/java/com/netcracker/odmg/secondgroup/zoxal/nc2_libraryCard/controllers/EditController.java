@@ -17,11 +17,10 @@ public class EditController extends HttpServlet{
 
 	public EditController() {
 		try {
-			recordManager= new RecordManager(MySQLDAO.getInstance());
+			recordManager= new RecordManager(new MySQLDAO());
 		} catch(SQLException | ClassNotFoundException e) {
 			//TODO:logging			
 		}
-		
 	}
 
 	public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
@@ -37,11 +36,10 @@ public class EditController extends HttpServlet{
 		try {
 			Record editRecord = recordManager.getRecordByTitle(bookTitle);
 			req.setAttribute("record", editRecord);
-			req.setAttribute("tableHeader", "Edit record");
-			req.setAttribute("formAction", req.getContextPath() + "/app/edit");
+			req.setAttribute("panelHeader", "Edit record");
 		} catch (Exception e) {
 			//TODO: logging
-			showErrorPage(req, res, "Exception during getting book with title "+bookTitle);
+			showErrorPage(req, res, "Fault during getting book with title " + bookTitle);
 		}
 		
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/jsp/add-edit.jsp");
@@ -51,7 +49,7 @@ public class EditController extends HttpServlet{
 	public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
 		if(recordManager == null) {
 			//TODO:logging
-			showErrorPage(req, res, "recordManager is not initialized");
+			showErrorPage(req, res, "recordManager is null");
 		}
 		String previousTitle = req.getParameter("previousTitle");
 		try {

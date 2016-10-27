@@ -5,7 +5,7 @@ $(document).ready(function() {
  			selected.removeClass("info");
  		}
  		selected = $(this);
- 		document.selectedTitle = $(this).find("td:eq(1)").text();
+ 		document.selectedTitle = $(this).find("td:eq(0)").text();
  		selected.addClass("info");
     });
 });

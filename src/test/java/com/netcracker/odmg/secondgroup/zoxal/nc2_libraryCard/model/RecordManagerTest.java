@@ -6,6 +6,7 @@ import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
 import org.junit.Test;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
@@ -13,6 +14,7 @@ import junitparams.Parameters;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 
 @RunWith(JUnitParamsRunner.class)
 public class RecordManagerTest {
@@ -26,12 +28,10 @@ public class RecordManagerTest {
 	
 	private static Record oneRecord;
 	private static Record changedRecord;
-	private static int changedRecordId;
 	
 	@BeforeClass
 	public static void init() throws SQLException, ClassNotFoundException {
-		recordManager = new RecordManager(MySQLDAO.getInstance());
-		
+		recordManager = new RecordManager(new MySQLDAO());		
 		
 		oneRecord = new Record();
 		oneRecord.setTitle("TestTitle");
@@ -45,6 +45,11 @@ public class RecordManagerTest {
 		changedRecord.setObtainDate("2000-01-01");
 		changedRecord.setReturnDate("2100-01-01");
 	}
+
+	@AfterClass
+	public static void destroy() throws Exception  {
+		recordManager.destroyDAO();
+	}
 	
 	@Parameters
 	public Object[] recordsExample() {
@@ -52,15 +57,6 @@ public class RecordManagerTest {
 			new Object[] {1, "Thinking in Java", "Bruce Eckel", "2016-09-16", "2016-11-16"},
 			new Object[] {2, "Mastring Regular Expressions", "Jeffrey Friedl", "2016-10-02", "2017-01-02"}
 		};
-	}
-	@Parameters
-	public Object[] oneRecordExample() {
-		return new Object[] {666, "TestTitle", "Jedi of JUnit", "1997-10-29", "2100-01-01"};
-	}
-	
-	@Test
-	public void ok() {
-		assertTrue(true);
 	}
 	
 	@Test
@@ -89,7 +85,7 @@ public class RecordManagerTest {
 	@Test
 	@Parameters(method = "recordsExample")
 	public void getAllRecordsTest(int bookId, String bookTitle, String bookAuthor,
-			String obtainDate, String returnDate) throws Exception {
+									String obtainDate, String returnDate) throws Exception {
 		ArrayList<Record> result = recordManager.getAllRecords();
 		Record testRecord = new Record();
 		testRecord.setId(bookId);
@@ -101,16 +97,17 @@ public class RecordManagerTest {
 	}
 	
 	// Здесь совсем плохо, но ничего другого я не придумал, подскажите, как лучше.
-	// Основная проблема (кроме нарушения главной идии юнит-тестирования) — при
-	// ошибке удаления/обновления тестовая запись остаётся в базе.
+	// Основная проблема (кроме нарушения главной идеи юнит-тестирования тестировать \
+	// за один раз что-то одно) — при ошибке удаления/обновления тестовая запись остаётся в базе.
 	@Test
 	public void addUpdateDeleteByIdRecordTest() throws Exception {
 		// FIXME: separate tests
-		changedRecordId = recordManager.addRecord(oneRecord);
+		int changedRecordId = recordManager.addRecord(oneRecord);
 		changedRecord.setId(changedRecordId);
 		recordManager.updateRecordById(changedRecord);
 		recordManager.deleteRecordById(changedRecordId);		
 	}
+
 	@Test
 	public void addUpdateDeleteByTitleRecordTest() throws Exception {
 		// FIXME: separate tests
@@ -118,5 +115,4 @@ public class RecordManagerTest {
 		recordManager.updateRecordByTitle(changedRecord, oneRecord.getTitle());
 		recordManager.deleteRecordByTitle(changedRecord.getTitle());		
 	}
-
 }

@@ -20,32 +20,27 @@ public class MySQLDAO implements DAO {
 	private final String USER_LOGIN = "nc2";
 	private final String USER_PASSWORD = "nc2_libraryCard";
 	
-	private static MySQLDAO singleton;
 	private Connection connection;
 	/*
 	  Вопрос
-	  Может, стоит сразу делать поля типа PreparedStatement?
+	  Может, стоит сразу делать поля типа PreparedStatement и в конструкторе их инициализировать?
 	 */
-	private final String findByIdQuery = "SELECT * FROM "+TABLE_NAME+" WHERE bookId = ?";
-	private final String findByTitleQuery = "SELECT * FROM "+TABLE_NAME+" WHERE bookTitle = ?";
-	private final String findHundredRecordsQuery = "SELECT * FROM "+TABLE_NAME+" LIMIT 100";
+	private final String findByIdQuery = "SELECT * FROM " + TABLE_NAME + " WHERE bookId = ?";
+	private final String findByTitleQuery = "SELECT * FROM " + TABLE_NAME + " WHERE bookTitle = ?";
+	private final String findHundredRecordsQuery = "SELECT * FROM " + TABLE_NAME + " LIMIT 100";
 	
-	private final String insertRecordQuery = "INSERT INTO "+TABLE_NAME+"(`bookTitle`, `bookAuthor`, `obtainDate`, `returnDate`) VALUES (?, ?, ?, ?)";
+	private final String insertRecordQuery = "INSERT INTO " + TABLE_NAME 
+		+ "(`bookTitle`, `bookAuthor`, `obtainDate`, `returnDate`) VALUES (?, ?, ?, ?)";
 	
-	private final String updateRecordByIdQuery = "UPDATE "+TABLE_NAME+" SET bookTitle = ?, bookAuthor = ?, obtainDate = ?, returnDate = ? WHERE bookId = ?";
-	private final String updateRecordByTitleQuery = "UPDATE "+TABLE_NAME+" SET bookTitle = ?, bookAuthor = ?, obtainDate = ?, returnDate = ? WHERE bookTitle = ?";
+	private final String updateRecordByIdQuery = "UPDATE " + TABLE_NAME 
+		+ " SET bookTitle = ?, bookAuthor = ?, obtainDate = ?, returnDate = ? WHERE bookId = ?";
+	private final String updateRecordByTitleQuery = "UPDATE " + TABLE_NAME 
+		+ " SET bookTitle = ?, bookAuthor = ?, obtainDate = ?, returnDate = ? WHERE bookTitle = ?";
 	
-	private final String deleteRecordByIdQuery = "DELETE FROM "+TABLE_NAME+" WHERE bookId = ?";
-	private final String deleteRecordByTitleQuery = "DELETE FROM "+TABLE_NAME+" WHERE bookTitle = ?";
+	private final String deleteRecordByIdQuery = "DELETE FROM " + TABLE_NAME + " WHERE bookId = ?";
+	private final String deleteRecordByTitleQuery = "DELETE FROM " + TABLE_NAME + " WHERE bookTitle = ?";
 	
-	public static MySQLDAO getInstance() throws SQLException, ClassNotFoundException{
-		if(singleton == null) {
-			singleton = new MySQLDAO();
-		}
-		return singleton;
-	}
-	
-	private MySQLDAO() throws SQLException, ClassNotFoundException{
+	public MySQLDAO() throws SQLException, ClassNotFoundException{
 		try {
 			Class.forName(MYSQL_CONNECTOR_CLASS);
 			try {
@@ -61,64 +56,59 @@ public class MySQLDAO implements DAO {
 			}
 			
 		} catch (ClassNotFoundException cause) {
+			// TODO: logging
 			throw new ClassNotFoundException("Cannot find mysql database driver.", cause);
 		}	
 	}
 
 	public Record getRecordById(int bookId) throws SQLException {
-		Record result = new Record();
-		
 		try (PreparedStatement statement = connection.prepareStatement(findByIdQuery)) {
 			statement.setInt(1, bookId);
-			ResultSet resultSet = statement.executeQuery();			
-			boolean isFound = resultSet.next();
-			if (isFound) {				
-				result.setId(resultSet.getInt("bookId"));
-				result.setTitle(resultSet.getString("bookTitle"));
-				result.setAuthor(resultSet.getString("bookAuthor"));
-				result.setObtainDate(resultSet.getString("obtainDate"));
-				result.setReturnDate(resultSet.getString("returnDate"));
-			} else {
-				throw new SQLException("There is no record with id = "+bookId);
-			}			
+
+			return getRecordFromStatement(statement);	
 		}catch (SQLException cause) {
 			// TODO: logging
 			throw cause;
-		}		
-		
-		return result;
+		}
 	}
 
-	public Record getRecordByTitle(String bookTitle) throws SQLException {
-		Record result = new Record();
-		
+	public Record getRecordByTitle(String bookTitle) throws SQLException {		
 		try (PreparedStatement statement = connection.prepareStatement(findByTitleQuery)) {
 			statement.setString(1, bookTitle);
-			ResultSet resultSet = statement.executeQuery();			
-			boolean isFound = resultSet.next();
-			if (isFound) {				
+
+			return getRecordFromStatement(statement);	
+		}catch (SQLException cause) {
+			// TODO: logging
+			throw cause;
+		}		
+	}
+
+	private Record getRecordFromStatement(PreparedStatement statement) throws SQLException {
+		Record result = new Record();
+		try {
+			ResultSet resultSet = statement.executeQuery();		
+			if (resultSet.next()) {				
 				result.setId(resultSet.getInt("bookId"));
 				result.setTitle(resultSet.getString("bookTitle"));
 				result.setAuthor(resultSet.getString("bookAuthor"));
 				result.setObtainDate(resultSet.getString("obtainDate"));
 				result.setReturnDate(resultSet.getString("returnDate"));
 			} else {
-				throw new SQLException("There is no record with title = "+bookTitle);
+				throw new SQLException("There is no record match query " + statement.toString());
 			}			
 		}catch (SQLException cause) {
-			// TODO: logging
 			throw cause;
 		}		
-		
 		return result;
 	}
 
 	public ArrayList<Record> getAllRecords() throws SQLException {
 		ArrayList<Record> result = new ArrayList<>();
+
 		try (Statement statement = connection.createStatement()) {
 			ResultSet resultSet = statement.executeQuery(findHundredRecordsQuery);
 			while(resultSet.next()) {
-				Record tmp = new Record();
+				Record tmp = new Record();				
 				tmp.setId(resultSet.getInt("bookId"));
 				tmp.setTitle(resultSet.getString("bookTitle"));
 				tmp.setAuthor(resultSet.getString("bookAuthor"));
@@ -137,22 +127,22 @@ public class MySQLDAO implements DAO {
 	public int addRecord(Record record) throws SQLException {
 		int newRecordId = -1;
 		
-		try (PreparedStatement statement = connection.prepareStatement(insertRecordQuery, Statement.RETURN_GENERATED_KEYS)) {
+		try (PreparedStatement statement = connection.prepareStatement(insertRecordQuery, 
+															Statement.RETURN_GENERATED_KEYS)) {
 			statement.setString(1, record.getTitle());
 			statement.setString(2, record.getAuthor());
 			statement.setString(3, record.getObtainDate());
 			statement.setString(4, record.getReturnDate());
 			
 			if (statement.executeUpdate() == 0) {
-				// TODO: logging
-				throw new SQLException("Fault during adding new element.");
+				throw new SQLException("Fault during adding new element. The query was " + statement.toString());
 			} else {
 				ResultSet generatedKeys = statement.getGeneratedKeys();
 				if (generatedKeys.next()) {
 					newRecordId = generatedKeys.getInt(1);
 				} else {
-					// TODO: logging
-					throw new SQLException("Fault during adding new element. New book id has not been initialized.");
+					throw new SQLException("Fault during adding new element. New book id "
+							+ "has not been initialized. The query was " + statement.toString());
 				}
 			}
 		} catch(SQLException cause) {
@@ -171,8 +161,7 @@ public class MySQLDAO implements DAO {
 			statement.setInt(5, record.getId());
 			
 			if (statement.executeUpdate() == 0) {
-				// TODO: logging
-				throw new SQLException("Fault during updating element");
+				throw new SQLException("Fault during updating element. There query was " + statement.toString());
 			}
 		} catch(SQLException cause) {
 			// TODO: logging
@@ -189,8 +178,7 @@ public class MySQLDAO implements DAO {
 			statement.setString(5, previousTitle);			
 			
 			if (statement.executeUpdate() == 0) {
-				// TODO: logging
-				throw new SQLException("Fault during updating element");
+				throw new SQLException("Fault during updating element. There query was " + statement.toString());
 			}
 		} catch(SQLException cause) {
 			// TODO: logging
@@ -204,8 +192,7 @@ public class MySQLDAO implements DAO {
 			statement.setInt(1, bookId);
 			
 			if (statement.executeUpdate() == 0 ) {
-				// TODO: logging
-				throw new SQLException("Fault during deleting element.");
+				throw new SQLException("Fault during deleting element. There query was " + statement.toString());
 			}
 		} catch(SQLException cause) {
 			// TODO: logging
@@ -218,8 +205,7 @@ public class MySQLDAO implements DAO {
 			statement.setString(1, bookTitle);
 			
 			if (statement.executeUpdate() == 0 ) {
-				// TODO: logging
-				throw new SQLException("Fault during deleting element.");
+				throw new SQLException("Fault during deleting element. There query was " + statement.toString());
 			}
 		} catch(SQLException cause) {
 			// TODO: logging
@@ -229,6 +215,7 @@ public class MySQLDAO implements DAO {
 
 	public void destroy() throws SQLException{
 		if (connection == null) return;
+
 		try {
 			connection.close();
 		} catch(SQLException cause) {

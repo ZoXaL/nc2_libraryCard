@@ -18,11 +18,10 @@ public class DeleteController extends HttpServlet {
 
 	public DeleteController() {
 		try {
-			recordManager= new RecordManager(MySQLDAO.getInstance());
+			recordManager= new RecordManager(new MySQLDAO());
 		} catch(SQLException | ClassNotFoundException e) {
 			//TODO:logging
-		}
-		
+		}		
 	}
 
 	public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
