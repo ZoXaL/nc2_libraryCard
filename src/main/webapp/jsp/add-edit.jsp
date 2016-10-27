@@ -28,18 +28,18 @@
 						</div>
 						<div class="form-group">
 							<label for="obtainDate">Obtain date</label>
-							<input class="form-control dateInput" value="${record.obtainDate}" type="text" required name="obtainDate" placeholder="2016-10-16" id="obtainDate"/>
+							<input class="form-control dateInput" value="${record.obtainDate}" type="text" required name="obtainDate" placeholder="2016-10-16" id="obtainDate" title="Date format is yyyy-mm-dd" pattern="^\d\d\d\d-\d\d-\d\d$"/>
 						</div>
 						
 						<div class="form-group">
 							<label for="returnDate">Return date</label>
-							<input class="form-control dateInput" value="${record.returnDate}" type="text" required name="returnDate" placeholder="2017-05-16" id="returnDate"/>
+							<input class="form-control dateInput" value="${record.returnDate}" type="text" required name="returnDate" placeholder="2017-05-16" id="returnDate" title="Date format is yyyy-mm-dd" pattern="^\d\d\d\d-\d\d-\d\d$"/>
 						</div>
 						<input class="form-control" value="${record.title}" type="hidden" name="previousTitle" />
 						
 					</form>
 				</div>
-				
+
 				<div class="panel-footer singleTablePanel-footer">
 					<div class="row">
 						<div class="col-sm-6">

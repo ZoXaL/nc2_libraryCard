@@ -9,7 +9,6 @@
 		<script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 		<script type="text/javascript" src="js/selectRow.js"></script>
 		<script type="text/javascript" src="js/routing.js"></script>
-		<script type="text/javascript" src="js/validateForm.js"></script>
 	</head>
 
 	<body>
